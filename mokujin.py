@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-import os, datetime, logging, configurator
+import os, datetime, logging
 import sys
 
 sys.path.insert(1, (os.path.dirname(__file__)))
 
 from discord.ext import commands
-from mokujin.resources import const, embed
-from mokujin import tkfinder
+from mokucore.resources import const, embed
+from mokucore import tkfinder, configurator
 
 base_path = os.path.dirname(__file__)
 config = configurator.Configurator(os.path.abspath(os.path.join(base_path, "resources", "config.json")))

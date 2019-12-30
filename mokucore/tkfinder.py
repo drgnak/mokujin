@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os, json
-from src.resources import const
+from mokucore.resources import const
 from difflib import SequenceMatcher
 from heapq import nlargest as _nlargest
 
