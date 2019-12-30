@@ -132,15 +132,14 @@ class Mokujin:
         return
 
     @_tk.command(name='feedback', pass_context=True)
-    async def feedback(self, ctx, user_message):
+    async def feedback(self, ctx, *, user_message):
         message = ctx.message
         server_name = ctx.message.server
         try:
-            feedback_channel = self.bot.get_channel(feedback_channel_id)
+            feedback_channel = self.bot.get_channel(str(feedback_channel_id))
             user_message = user_message.replace("\n", "")
             result = "{}  ;  {} ;   {};\n".format(str(message.author), server_name, user_message)
-            # TODO: send to correct channel
-            await self.bot.say(result)
+            await self.bot.send_message(feedback_channel, result)
 
             await self.bot.say(embed=embed.success_embed("Feedback sent"))
         except Exception as e:
