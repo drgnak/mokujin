@@ -56,7 +56,10 @@ class Mokujin:
             user_message = message.content.split(' ', 1)[1]
 
             user_message_list = user_message.split(' ', 1)
-
+        except:
+            send_cmd_help(ctx)
+        
+        try:
             if len(user_message_list) <= 1:
                 # malformed command
                 return
