@@ -8,6 +8,8 @@ from discord.ext import commands
 from mokucore.resources import const, embed
 from mokucore import tkfinder, configurator
 
+from cogs.utils import checks
+
 base_path = os.path.dirname(__file__)
 config = configurator.Configurator(os.path.abspath(os.path.join(base_path, "mokucore", "resources", "config.json")))
 description = 'The premier Tekken 7 Frame bot, made by Baikonur#4927, continued by Tib#1303'
@@ -40,7 +42,6 @@ class Mokujin:
 
     def __init__(self, bot):
         self.bot = bot
-        self.prefix = bot.get_prefix()
     @commands.group(name="tk", pass_context=True)
     async def _tk(self, ctx):
         """This has the main functionality of the bot. It has a lot of
@@ -51,42 +52,20 @@ class Mokujin:
             message = ctx.message
             channel = message.channel
             user_message = message.content.split(' ', 1)[1]
+            command = user_message.split(' ', 1)[0]
 
-            if message.content.startswith(self.prefix + "tk auto-delete"):
+            if command == "auto-delete":
+                pass
 
-                if message.author.permissions_in(channel).manage_messages:
-                    duration = user_message.split(' ', 1)[1]
-                    if duration.isdigit() or duration == "-1":
-                        config.save_auto_delete_duration(channel.id, duration)
-                        await self.bot.say(embed=embed.success_embed("Saved"))
-                    else:
-                        await self.bot.say(embed=embed.error_embed("Duration needs to be a number in seconds"))
-                else:
-                    await self.bot.say(embed=embed.error_embed("You need the permission <manage_messages> to do that"))
-                return
 
-            elif message.content == self.prefix + 'tk help':
-                await self.bot.say(embed=embed.help_embed())
-                return
+            elif command == "help":
+                pass
 
-            elif message.content.startswith(self.prefix + 'tk feedback'):
-                user_message = user_message.split(' ', 1)[1]
-                server_name = str(message.channel.guild)
 
-                try:
-
-                    feedback_channel = bot.get_channel(feedback_channel_id)
-                    user_message = user_message.replace("\n", "")
-                    result = "{}  ;  {} ;   {};\n".format(str(message.author), server_name, user_message)
-                    await self.bot.say(result)
-
-                    await self.bot.say(embed=embed.success_embed("Feedback sent"))
-                except Exception as e:
-                    await self.bot.say(embed=embed.error_embed("Feedback couldn't be sent caused by: " + e))
-                return
+            elif command == "feedback":
+                pass
 
             else:
-
                 delete_after = config.get_auto_delete_duration(channel.id)
 
 
@@ -136,19 +115,47 @@ class Mokujin:
                     bot_msg = 'Character {} does not exist.'.format(original_name)
                     result = embed.error_embed(bot_msg)
                     await self.bot.say(embed=result, delete_after=5)
-            # TODO: set whether or not to delete original message sent
-            try:
-                await self.bot.delete_message(message)
-            except:
-                pass
-            return
+                # TODO: set whether or not to delete original message sent
+                try:
+                    await self.bot.delete_message(message)
+                except:
+                    pass
+                return
         except Exception as e:
             print(e)
             logger.error(e)
 
+    @checks.mod_or_permissions(manage_messages=True)
+    @_tk.command(name='auto-delete', pass_context=True)
+    async def auto_delete(self, ctx, seconds):
+        channel = ctx.message.channel
+        if seconds.isdigit() or seconds == "-1":
+            config.save_auto_delete_duration(channel.id, seconds)
+            await self.bot.say(embed=embed.success_embed("Saved"))
+        else:
+            await self.bot.say(embed=embed.error_embed("Duration needs to be a number in seconds"))
+        return
 
-def is_me(m):
-    return m.author == bot.user
+    @_tk.command(name='feedback', pass_context=True)
+    async def feedback(self, ctx, user_message):
+        message = ctx.message
+        server_name = ctx.message.server
+        try:
+            feedback_channel = self.bot.get_channel(feedback_channel_id)
+            user_message = user_message.replace("\n", "")
+            result = "{}  ;  {} ;   {};\n".format(str(message.author), server_name, user_message)
+            # TODO: send to correct channel
+            await self.bot.say(result)
+
+            await self.bot.say(embed=embed.success_embed("Feedback sent"))
+        except Exception as e:
+            await self.bot.say(embed=embed.error_embed("Feedback couldn't be sent caused by: " + e))
+        return
+    
+    @_tk.command(name='help')
+    async def help(self):
+        await self.bot.say(embed=embed.help_embed())
+        return
 
 def setup(bot):
     bot.add_cog(Mokujin(bot))
