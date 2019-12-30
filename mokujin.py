@@ -136,7 +136,6 @@ class Mokujin:
                     bot_msg = 'Character {} does not exist.'.format(original_name)
                     result = embed.error_embed(bot_msg)
                     await self.bot.say(embed=result, delete_after=5)
-                    return
             # TODO: set whether or not to delete original message sent
             try:
                 await self.bot.delete_message(message)
