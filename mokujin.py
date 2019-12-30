@@ -10,6 +10,8 @@ from mokucore import tkfinder, configurator
 
 from cogs.utils import checks
 
+command_list = ['auto-delete', 'help', 'feedback']
+
 base_path = os.path.dirname(__file__)
 config = configurator.Configurator(os.path.abspath(os.path.join(base_path, "mokucore", "resources", "config.json")))
 description = 'The premier Tekken 7 Frame bot, made by Baikonur#4927, continued by Tib#1303'
@@ -52,75 +54,58 @@ class Mokujin:
             message = ctx.message
             channel = message.channel
             user_message = message.content.split(' ', 1)[1]
-            command = user_message.split(' ', 1)[0]
 
-            if command == "auto-delete":
-                pass
+            user_message_list = user_message.split(' ', 1)
 
+            if len(user_message_list) <= 1:
+                # malformed command
+                return
 
-            elif command == "help":
-                pass
+            original_name = user_message_list[0].lower()
+            original_move = user_message_list[1]
 
+            character_name = tkfinder.correct_character_name(original_name)
 
-            elif command == "feedback":
-                pass
-
-            else:
+            if character_name is not None:
                 delete_after = config.get_auto_delete_duration(channel.id)
+                character = tkfinder.get_character_data(character_name)
+                character_move = original_move.lower()
 
+                if original_move.lower() in const.MOVE_TYPES.keys():
 
-                # user_message = content
-                command = user_message
-                user_message_list = command.split(' ', 1)
+                    move_list = tkfinder.get_by_move_type(character, const.MOVE_TYPES[character_move])
+                    if len(move_list) < 1:
+                        result = embed.error_embed(
+                            'No ' + const.MOVE_TYPES[character_move].lower() + ' for ' + character['proper_name'])
+                        await self.bot.say(embed=result, delete_after=delete_after)
+                    elif len(move_list) == 1:
+                        character_move = tkfinder.get_move(character, move_list[0])
+                        result = embed.move_embed(character, character_move)
+                        await self.bot.say(embed=result, delete_after=delete_after)
+                    elif len(move_list) > 1:
+                        result = embed.move_list_embed(character, move_list, const.MOVE_TYPES[character_move])
+                        await self.bot.say(embed=result, delete_after=delete_after)
 
-                if len(user_message_list) <= 1:
-                    # malformed command
-                    return
-
-                original_name = user_message_list[0].lower()
-                original_move = user_message_list[1]
-
-                character_name = tkfinder.correct_character_name(original_name)
-
-                if character_name is not None:
-                    character = tkfinder.get_character_data(character_name)
-                    character_move = original_move.lower()
-
-                    if original_move.lower() in const.MOVE_TYPES.keys():
-
-                        move_list = tkfinder.get_by_move_type(character, const.MOVE_TYPES[character_move])
-                        if len(move_list) < 1:
-                            result = embed.error_embed(
-                                'No ' + const.MOVE_TYPES[character_move].lower() + ' for ' + character['proper_name'])
-                            await self.bot.say(embed=result, delete_after=delete_after)
-                        elif len(move_list) == 1:
-                            character_move = tkfinder.get_move(character, move_list[0])
-                            result = embed.move_embed(character, character_move)
-                            await self.bot.say(embed=result, delete_after=delete_after)
-                        elif len(move_list) > 1:
-                            result = embed.move_list_embed(character, move_list, const.MOVE_TYPES[character_move])
-                            await self.bot.say(embed=result, delete_after=delete_after)
-
-                    else:
-                        character_move = tkfinder.get_move(character, original_move)
-
-                        if character_move is not None:
-                            result = embed.move_embed(character, character_move)
-                            await self.bot.say(embed=result, delete_after=delete_after)
-                        else:
-                            similar_moves = tkfinder.get_similar_moves(original_move, character_name)
-                            result = embed.similar_moves_embed(similar_moves)
-                            await self.bot.say(embed=result, delete_after=delete_after)
                 else:
-                    bot_msg = 'Character {} does not exist.'.format(original_name)
-                    result = embed.error_embed(bot_msg)
-                    await self.bot.say(embed=result, delete_after=5)
-                # TODO: set whether or not to delete original message sent
+                    character_move = tkfinder.get_move(character, original_move)
+
+                    if character_move is not None:
+                        result = embed.move_embed(character, character_move)
+                        await self.bot.say(embed=result, delete_after=delete_after)
+                    else:
+                        similar_moves = tkfinder.get_similar_moves(original_move, character_name)
+                        result = embed.similar_moves_embed(similar_moves)
+                        await self.bot.say(embed=result, delete_after=delete_after)
+                            # TODO: set whether or not to delete original message sent
                 try:
                     await self.bot.delete_message(message)
                 except:
                     pass
-                return
+            elif original_name not in command_list:
+                bot_msg = 'Character {} does not exist.'.format(original_name)
+                result = embed.error_embed(bot_msg)
+                await self.bot.say(embed=result, delete_after=5)
+
         except Exception as e:
             print(e)
             logger.error(e)
