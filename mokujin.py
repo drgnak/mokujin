@@ -137,7 +137,8 @@ class Mokujin:
                     result = embed.error_embed(bot_msg)
                     await message.self.bot.say(embed=result, delete_after=5)
                     return
-            await bot.process_commands(message)
+
+            return
         except Exception as e:
             print(e)
             logger.error(e)
