@@ -147,5 +147,5 @@ class Mokujin:
 def is_me(m):
     return m.author == bot.user
 
-
-bot.run(token)
+def setup(bot):
+    bot.add_cog(Mokujin(bot))
