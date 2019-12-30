@@ -105,6 +105,10 @@ class Mokujin:
                 bot_msg = 'Character {} does not exist.'.format(original_name)
                 result = embed.error_embed(bot_msg)
                 await self.bot.say(embed=result, delete_after=5)
+                try:
+                    await self.bot.delete_message(message)
+                except:
+                    pass
 
         except Exception as e:
             print(e)
