@@ -133,7 +133,7 @@ class Mokujin:
                             result = embed.similar_moves_embed(similar_moves)
                             await self.bot.say(embed=result, delete_after=delete_after)
                 else:
-                    bot_msg = f'Character {original_name} does not exist.'
+                    bot_msg = 'Character {} does not exist.'.format(original_name)
                     result = embed.error_embed(bot_msg)
                     await message.self.bot.say(embed=result, delete_after=5)
                     return
