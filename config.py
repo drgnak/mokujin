@@ -1,5 +1,5 @@
 CHANNELS = ["tekken", "raamikysely", "tekken-frames"]
-
+DELETE_AFTER = 30
 CHARACTER_NAMES = [
     {
         "name": "armor_king",

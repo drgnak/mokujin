@@ -6,12 +6,10 @@ import asyncio
 import discord
 from discord.ext import commands
 
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
 import tkfinder
 import config
-
-prefix = '§'
-description = 'The premier Tekken 7 Frame bot, made by Baikonur#4927'
-bot = commands.Bot(command_prefix=prefix, description=description)
 
 # Dict for searching special move types
 move_types = {  'ra': 'Rage art',
@@ -30,13 +28,6 @@ move_types = {  'ra': 'Rage art',
                 'pc': 'Power crush',
                 'power': 'Power crush',
                 'power_crush': 'Power crush'}
-
-# Get token from local txt file
-dirname, pyfilename = os.path.split(os.path.abspath(sys.argv[0]))
-tfilename = os.path.join(dirname, 'token.txt')
-
-with open(tfilename) as token_file:
-    token = token_file.read().strip()
 
 def move_embed(character, move):
     '''Returns the embed message for character and move'''
@@ -75,84 +66,89 @@ def error_embed(err):
 
     return embed
 
-@bot.event
-async def on_ready():
-    print(datetime.datetime.utcnow().isoformat())
-    print('Logged in as')
-    print(bot.user.name)
-    print(bot.user.id)
-    print('------')
+class Mokujin:
+    prefix = '!'
+    description = 'The premier Tekken 7 Frame bot, made by Baikonur#4927'
 
-@bot.command()
-async def test(ctx):
-    print('Testing...')
-    embed = discord.Embed(title='Test title', description='A test embed thing.', colour=0x0000FF)
-    embed.set_author(name='Test name', icon_url=bot.user.default_avatar_url)
-    await ctx.send(embed=embed, delete_after=60)
+    def __init__(self, bot):
+        self.bot = bot
+    @commands.group(name="tk", pass_context=True)
+    async def _tk(self, ctx):
+        '''This has the main functionality of the bot. It has a lot of
+        things that would be better suited elsewhere but I don't know
+        if I'm going to change it.
+        '''
+        message = ctx.message
+        channel = message.channel
+        content = message.content.split(' ', 1)
+        try:
+            await self.bot.delete_message(message)
+        except:
+            pass
 
-@bot.event
-async def on_message(message):
-    '''This has the main functionality of the bot. It has a lot of
-    things that would be better suited elsewhere but I don't know
-    if I'm going to change it.
-    '''
-    channel = message.channel
-    if message.content.startswith('!') and ((isinstance(channel, discord.channel.DMChannel)) or (channel.name in config.CHANNELS)):
+        # if message.content.startswith(self.prefix) and ((isinstance(channel, discord.channel.DMChannel)) or (channel.name in config.CHANNELS)):
+        if len(content) > 1:
+            user_message = content[1]
+            # user_message = user_message.replace(self.prefix, '')
+            user_message_list = user_message.split(' ', 1)
 
-        user_message = message.content
-        user_message = user_message.replace('!', '')
-        user_message_list = user_message.split(' ', 1)
+            if len(user_message_list) <= 1:
+                # malformed command
+                return
 
-        if len(user_message_list) <= 1:
-            # malformed command
-            return
+            chara_name = user_message_list[0].lower()
+            chara_move = user_message_list[1]
 
-        chara_name = user_message_list[0].lower()
-        chara_move = user_message_list[1]
+            # iterate through character aliases in config for matching value
+            chara_alias = list(filter(lambda x: (chara_name in x['alias']), config.CHARACTER_NAMES))
+            if chara_alias:
+                chara_name = chara_alias[0]['name']
 
-        # iterate through character aliases in config for matching value
-        chara_alias = list(filter(lambda x: (chara_name in x['alias']), config.CHARACTER_NAMES))
-        if chara_alias:
-            chara_name = chara_alias[0]['name']
+            character = tkfinder.get_character(chara_name)
+            if character is not None:
+                if chara_move.lower() in move_types:
+                    chara_move = chara_move.lower()
+                    move_list = tkfinder.get_by_move_type(character, move_types[chara_move])
+                    if  len(move_list) < 1:
+                        embed = error_embed('No ' + move_types[chara_move].lower() + ' for ' + character['proper_name'])
+                        msg = await self.bot.say(embed=embed, delete_after=config.DELETE_AFTER)
+                        return
+                    elif len(move_list) == 1:
+                        move = tkfinder.get_move(character, move_list[0], False)
+                        embed = move_embed(character, move)
+                        msg = await self.bot.say(embed=embed, delete_after=config.DELETE_AFTER)
+                        return
+                    elif len(move_list) > 1:
+                        embed = move_list_embed(character, move_list, move_types[chara_move])
+                        msg = await self.bot.say(embed=embed, delete_after=config.DELETE_AFTER)
+                        return
 
-        character = tkfinder.get_character(chara_name)
-        if character is not None:
-            if chara_move.lower() in move_types:
-                chara_move = chara_move.lower()
-                move_list = tkfinder.get_by_move_type(character, move_types[chara_move])
-                if  len(move_list) < 1:
-                    embed = error_embed('No ' + move_types[chara_move].lower() + ' for ' + character['proper_name'])
-                    msg = await channel.send(embed=embed, delete_after=150)
-                elif len(move_list) == 1:
-                    move = tkfinder.get_move(character, move_list[0], False)
-                    embed = move_embed(character, move)
-                    msg = await channel.send(embed=embed, delete_after=300)
-                elif len(move_list) > 1:
-                    embed = move_list_embed(character, move_list, move_types[chara_move])
-                    msg = await channel.send(embed=embed, delete_after=300)
-
-            else:
-                move = tkfinder.get_move(character, chara_move, True)
-
-                #First checks the move as case sensitive, if it doesn't find it
-                #it checks it case unsensitive
-
-                if move is not None:
-                    embed = move_embed(character, move)
-                    msg = await channel.send(embed=embed, delete_after=300)
                 else:
-                    move = tkfinder.get_move(character, chara_move, False)
+                    move = tkfinder.get_move(character, chara_move, True)
+
+                    #First checks the move as case sensitive, if it doesn't find it
+                    #it checks it case unsensitive
+
                     if move is not None:
                         embed = move_embed(character, move)
-                        msg = await channel.send(embed=embed, delete_after=300)
+                        msg = await self.bot.say(embed=embed, delete_after=config.DELETE_AFTER)
+                        return
                     else:
-                        embed = error_embed('Move not found: ' + chara_move)
-                        msg = await channel.send(embed=embed, delete_after=150)
-        else:
-            bot_msg = 'Character ' + chara_name + ' does not exist.'
-            embed = error_embed(bot_msg)
-            msg = await message.channel.send(embed=embed, delete_after=150)
+                        move = tkfinder.get_move(character, chara_move, False)
+                        if move is not None:
+                            embed = move_embed(character, move)
+                            msg = await self.bot.say(embed=embed, delete_after=config.DELETE_AFTER)
+                            return
+                        else:
+                            embed = error_embed('Move not found: ' + chara_move)
+                            msg = await self.bot.say(embed=embed, delete_after=config.DELETE_AFTER)
+                            return
+            else:
+                bot_msg = 'Character ' + chara_name + ' does not exist.'
+                embed = error_embed(bot_msg)
+                msg = await self.bot.say(embed=embed, delete_after=config.DELETE_AFTER)
 
-            return
-    await bot.process_commands(message)
-bot.run(token)
+                return
+
+def setup(bot):
+    bot.add_cog(Mokujin(bot))
