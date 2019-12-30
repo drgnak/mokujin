@@ -57,7 +57,8 @@ class Mokujin:
 
             user_message_list = user_message.split(' ', 1)
         except:
-            send_cmd_help(ctx)
+            await self.bot.say(embed=embed.help_embed())
+            return
         
         try:
             if len(user_message_list) <= 1:
