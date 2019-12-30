@@ -9,7 +9,7 @@ from mokucore.resources import const, embed
 from mokucore import tkfinder, configurator
 
 base_path = os.path.dirname(__file__)
-config = configurator.Configurator(os.path.abspath(os.path.join(base_path, "resources", "config.json")))
+config = configurator.Configurator(os.path.abspath(os.path.join(base_path, "mokucore", "resources", "config.json")))
 description = 'The premier Tekken 7 Frame bot, made by Baikonur#4927, continued by Tib#1303'
 
 # Set logger to log errors
