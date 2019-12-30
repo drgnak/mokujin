@@ -137,7 +137,11 @@ class Mokujin:
                     result = embed.error_embed(bot_msg)
                     await message.self.bot.say(embed=result, delete_after=5)
                     return
-
+            # TODO: set whether or not to delete original message sent
+            try:
+                await self.bot.delete_message(message)
+            except:
+                pass
             return
         except Exception as e:
             print(e)
