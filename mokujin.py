@@ -63,7 +63,7 @@ class Mokujin:
         try:
             original_name = user_message_list[0].lower()
             if len(user_message_list) <= 1:
-                if original_name not in command_list
+                if original_name not in command_list:
                     await self.bot.say(embed=embed.help_embed())
                 return
 
