@@ -36,11 +36,11 @@ feedback_channel_id = config.read_config()['FEEDBACK_CHANNEL_ID']
 
 
 class Mokujin:
-    prefix = '!'
     description = 'The premier Tekken 7 Frame bot, made by Baikonur#4927, continued by Tib#1303'
 
     def __init__(self, bot):
         self.bot = bot
+        self.prefix = bot.get_prefix()
     @commands.group(name="tk", pass_context=True)
     async def _tk(self, ctx):
         """This has the main functionality of the bot. It has a lot of
