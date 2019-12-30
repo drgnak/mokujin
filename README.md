@@ -18,7 +18,7 @@ You can add a feedback channel into `mokucore/resources/config.json` also.
 
 Commands
 ```
-!character move         -   get frame data of a move from a character
-!auto-delete seconds   -    change the duration of the bot waiting until he deletes the message in this channel
-?feedback message       -   send message to the author   
+!tk character move         -   get frame data of a move from a character
+!tk auto-delete seconds   -    change the duration of the bot waiting until he deletes the message in this channel
+!tk feedback message       -   send message to the author   
 ```
